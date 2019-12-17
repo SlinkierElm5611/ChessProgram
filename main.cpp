@@ -49,6 +49,14 @@ int whitepawn5[7];
 int whitepawn6[7];
 int whitepawn7[7];
 int whitepawn8[7];
+struct boardinfoforbacktracking{
+    int piecethatwasjustmoved;
+    int piecethatwaskilled;
+    int board[9][9];
+    bool turn;
+    int turncount;
+};
+boardinfoforbacktracking backtrackingdata{};
 void resetboard(){
     whitequeen[x]=4;
     whitequeen[y]=1;
@@ -1550,6 +1558,16 @@ int maininputthing(){
     stringstream1>>verticalvalue;
     return (horizontalvalue*10)+verticalvalue;
 }
+void returnstostatebeforemove(){
+    for(int i=1; i<9; i++){
+        for(int j=1; j<9; j++ ){
+            peicelocationupdator(backtrackingdata.board[i][j], i*10+j);
+        }
+    }
+    if(backtrackingdata.piecethatwaskilled!=0){
+
+    }
+}
 int main(){
     std::thread thread1(resetboard);
     thread1.detach();
@@ -1559,8 +1577,15 @@ int main(){
     int peiceid;
     bool inproperinput=true;
     while(!checkmate){
+        movecounter++;
         cout<<coloursturn<<endl;
+        for(int i=1; i<9; i++){
+            for(int j=1; j<8; j++){
+                backtrackingdata.board[i][j]=peiceidentifier(i*10+j);
+            }
+        }
         while(inproperinput) {
+            catchcheck:
             cout << "enter piece you would like to move" << endl;
             peicelocation=maininputthing();
             cout << "enter location you would like to move to" << endl;
@@ -1580,6 +1605,9 @@ int main(){
             }
             if(!inproperinput){
                 bool allowed;
+                if(peiceidentifier(desiredlocation)!=0&&peicecolouridentifier(peiceidentifier(desiredlocation))==!coloursturn){
+                    backtrackingdata.piecethatwaskilled=peiceidentifier(desiredlocation);
+                }
                 peiceid=peiceidentifier(peicelocation);
                 if(peiceid==1||peiceid==2){
                     allowed=queen(peicelocation, desiredlocation);
@@ -1614,14 +1642,25 @@ int main(){
                 }
             }
         }
+        backtrackingdata.piecethatwasjustmoved=peiceid;
+        backtrackingdata.turn=coloursturn;
+        backtrackingdata.turncount=movecounter;
+        bool willbacktrack;
+        if(coloursturn){
+            willbacktrack=check(1);
+        }else{
+            willbacktrack=check(0);
+        }
+        if(willbacktrack){
+            movecounter=backtrackingdata.turncount;
+            cout<<"You Moved Into Check"<<endl;
+            goto catchcheck;
+        }
         if(coloursturn){
             coloursturn=false;
         }else{
             coloursturn=true;
         }
-        cout<<check(0)<<" check for black"<<endl;
-        cout<<check(1)<<" check for white"<<endl;
-        movecounter++;
         if(checkmate){
             break;
         }
