@@ -1,3 +1,7 @@
+/*
+ * Made By Stefan Balta
+ * If you would like to use this code, please feel free to granted you give the original creator credit where it is needed
+ */
 #include <iostream>
 #include <thread>
 #include <string>
