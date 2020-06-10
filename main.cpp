@@ -3,7 +3,15 @@
 #include <string>
 #include <cctype>
 #include <sstream>
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <stack>
 using namespace std;
+struct pieceInformation{
+    int x, y, colour, pieceid, dead, peicemovecounter, piecevalue;
+};
+vector<pieceInformation> Pieces;
 int const x=0;
 int const y=1;
 int const colour=2;
@@ -12,10 +20,12 @@ int const dead=4;
 int const peicemovecounter=5;
 int const piecevalue=6;
 bool coloursturn;
-bool checkmate=false;
 string actualcharactetest;
 string firstcharacter;
 string secondcharacter;
+bool castle;
+int rooklocation;
+int newrooklocation;
 int movecounter=0;
 int blackqueen[7];
 int blackking[7];
@@ -55,7 +65,19 @@ struct boardinfoforbacktracking{
     int board[9][9];
     bool turn;
     int turncount;
+    int wherepiecemoved;
+    int wherepiecethatwasmovedmovedfrom;
 };
+struct allpossiblemoves{
+    int peicelocation;
+    int desiredlocation;
+};
+struct checkmatecheckerdata{
+    int pieces[32][7];
+};
+checkmatecheckerdata currentstate{};
+stack <allpossiblemoves> allmovesallowedincurrentstate;
+allpossiblemoves usedtosenddatatostack{};
 boardinfoforbacktracking backtrackingdata{};
 void resetboard(){
     whitequeen[x]=4;
@@ -251,6 +273,7 @@ void resetboard(){
     blackpawn8[dead]=0;
     blackpawn8[peicemovecounter]=0;
     movecounter=0;
+    coloursturn=true;
 }
 int peiceidentifier(int peicelocation){
     if(whitequeen[x]==peicelocation/10&&whitequeen[y]==peicelocation%10){
@@ -549,6 +572,69 @@ void peicebeingkilled(int peiceid){
         blackpawn8[dead]=1;
     }
 }
+void peicebeingbacktracked(int peiceid){
+    if(whitequeen[pieceid]==peiceid){
+        whitequeen[dead]=0;
+    }else if(blackqueen[pieceid]==peiceid){
+        blackqueen[dead]=0;
+    }else if(whitebishop1[pieceid]==peiceid){
+        whitebishop1[dead]=0;
+    }else if(whitebishop2[pieceid]==peiceid){
+        whitebishop2[dead]=0;
+    }else if(blackbishop1[pieceid]==peiceid){
+        blackbishop1[dead]=0;
+    }else if(blackbishop2[pieceid]==peiceid){
+        blackbishop2[dead]=0;
+    }else if(whiteknight1[pieceid]==peiceid){
+        whiteknight1[dead]=0;
+    }else if(whiteknight2[pieceid]==peiceid){
+        whiteknight2[dead]=0;
+    }else if(blackknight1[pieceid]==peiceid){
+        blackknight1[dead]=0;
+    }else if(blackknight2[pieceid]==peiceid){
+        blackknight2[dead]=0;
+    }else if(whiterook1[pieceid]==peiceid){
+        whiterook1[dead]=0;
+    }else if(whiterook2[pieceid]==peiceid){
+        whiterook2[dead]=0;
+    }else if(blackrook1[pieceid]==peiceid){
+        blackrook1[dead]=0;
+    }else if(blackrook2[pieceid]==peiceid){
+        blackrook2[dead]=0;
+    }else if(whitepawn1[pieceid]==peiceid){
+        whitepawn1[dead]=0;
+    }else if(whitepawn2[pieceid]==peiceid){
+        whitepawn2[dead]=0;
+    }else if(whitepawn3[pieceid]==peiceid){
+        whitepawn3[dead]=0;
+    }else if(whitepawn4[pieceid]==peiceid){
+        whitepawn4[dead]=0;
+    }else if(whitepawn5[pieceid]==peiceid){
+        whitepawn5[dead]=0;
+    }else if(whitepawn6[pieceid]==peiceid){
+        whitepawn6[dead]=0;
+    }else if(whitepawn7[pieceid]==peiceid){
+        whitepawn7[dead]=0;
+    }else if(whitepawn8[pieceid]==peiceid){
+        whitepawn8[dead]=0;
+    }else if(blackpawn1[pieceid]==peiceid){
+        blackpawn1[dead]=0;
+    }else if(blackpawn2[pieceid]==peiceid){
+        blackpawn2[dead]=0;
+    }else if(blackpawn3[pieceid]==peiceid){
+        blackpawn3[dead]=0;
+    }else if(blackpawn4[pieceid]==peiceid){
+        blackpawn4[dead]=0;
+    }else if(blackpawn5[pieceid]==peiceid){
+        blackpawn5[dead]=0;
+    }else if(blackpawn6[pieceid]==peiceid){
+        blackpawn6[dead]=0;
+    }else if(blackpawn7[pieceid]==peiceid){
+        blackpawn7[dead]=0;
+    }else if(blackpawn8[pieceid]==peiceid){
+        blackpawn8[dead]=0;
+    }
+}
 int peicecolouridentifier(int peiceid){
     if(whitequeen[pieceid]==peiceid){
         return whitequeen[colour];
@@ -819,42 +905,251 @@ void peicemovedupdator(int peiceid){
         blackpawn8[peicemovecounter]=1;
     }
 }
+void peiceprinter(int peicelocation){
+    int peiceid=peiceidentifier(peicelocation);
+    if(whitequeen[pieceid]==peiceid){
+        cout<<"White Queen"<<endl;
+    }else if(blackqueen[pieceid]==peiceid){
+        cout<<"Black Queen"<<endl;
+    }else if(whiteking[pieceid]==peiceid){
+        cout<<"White King"<<endl;
+    }else if(blackking[pieceid]==peiceid){
+        cout<<"Black King"<<endl;
+    }else if(whitebishop1[pieceid]==peiceid){
+        cout<<"White Bishop"<<endl;
+    }else if(whitebishop2[pieceid]==peiceid){
+        cout<<"White Bishop"<<endl;
+    }else if(blackbishop1[pieceid]==peiceid){
+        cout<<"Black Bishop"<<endl;
+    }else if(blackbishop2[pieceid]==peiceid){
+        cout<<"Black Bishop"<<endl;
+    }else if(whiteknight1[pieceid]==peiceid){
+        cout<<"White Knight"<<endl;
+    }else if(whiteknight2[pieceid]==peiceid){
+        cout<<"White Knight"<<endl;
+    }else if(blackknight1[pieceid]==peiceid){
+        cout<<"Black Knight"<<endl;
+    }else if(blackknight2[pieceid]==peiceid){
+        cout<<"Black Knight"<<endl;
+    }else if(whiterook1[pieceid]==peiceid){
+        cout<<"White Rook"<<endl;
+    }else if(whiterook2[pieceid]==peiceid){
+        cout<<"White Rook"<<endl;
+    }else if(blackrook1[pieceid]==peiceid){
+        cout<<"Black Rook"<<endl;
+    }else if(blackrook2[pieceid]==peiceid){
+        cout<<"Black Rook"<<endl;
+    }else if(whitepawn1[pieceid]==peiceid){
+        cout<<"White Pawn"<<endl;
+    }else if(whitepawn2[pieceid]==peiceid){
+        cout<<"White Pawn"<<endl;
+    }else if(whitepawn3[pieceid]==peiceid){
+        cout<<"White Pawn"<<endl;
+    }else if(whitepawn4[pieceid]==peiceid){
+        cout<<"White Pawn"<<endl;
+    }else if(whitepawn5[pieceid]==peiceid){
+        cout<<"White Pawn"<<endl;
+    }else if(whitepawn6[pieceid]==peiceid){
+        cout<<"White Pawn"<<endl;
+    }else if(whitepawn7[pieceid]==peiceid){
+        cout<<"White Pawn"<<endl;
+    }else if(whitepawn8[pieceid]==peiceid){
+        cout<<"White Pawn"<<endl;
+    }else if(blackpawn1[pieceid]==peiceid){
+        cout<<"Black Pawn"<<endl;
+    }else if(blackpawn2[pieceid]==peiceid){
+        cout<<"Black Pawn"<<endl;
+    }else if(blackpawn3[pieceid]==peiceid){
+        cout<<"Black Pawn"<<endl;
+    }else if(blackpawn4[pieceid]==peiceid){
+        cout<<"Black Pawn"<<endl;
+    }else if(blackpawn5[pieceid]==peiceid){
+        cout<<"Black Pawn"<<endl;
+    }else if(blackpawn6[pieceid]==peiceid){
+        cout<<"Black Pawn"<<endl;
+    }else if(blackpawn7[pieceid]==peiceid){
+        cout<<"Black Pawn"<<endl;
+    }else if(blackpawn8[pieceid]==peiceid){
+        cout<<"Black Pawn"<<endl;
+    } else{
+        cout<<"Empty"<<endl;
+    }
+}
+int returnsspecificvaluerequiredofpeice(int peiceid, int indexwanted){
+    if(whitequeen[pieceid]==peiceid){
+        return whitequeen[indexwanted];
+    }else if(blackqueen[pieceid]==peiceid){
+        return blackqueen[indexwanted];
+    }else if(whiteking[pieceid]==peiceid){
+        return whiteking[indexwanted];
+    }else if(blackking[pieceid]==peiceid){
+        return blackking[indexwanted];
+    }else if(whitebishop1[pieceid]==peiceid){
+        return whitebishop1[indexwanted];
+    }else if(whitebishop2[pieceid]==peiceid){
+        return whitebishop2[indexwanted];
+    }else if(blackbishop1[pieceid]==peiceid){
+        return blackbishop1[indexwanted];
+    }else if(blackbishop2[pieceid]==peiceid){
+        return blackbishop2[indexwanted];
+    }else if(whiteknight1[pieceid]==peiceid){
+        return whiteknight1[indexwanted];
+    }else if(whiteknight2[pieceid]==peiceid){
+        return whiteknight2[indexwanted];
+    }else if(blackknight1[pieceid]==peiceid){
+        return blackknight1[indexwanted];
+    }else if(blackknight2[pieceid]==peiceid){
+        return blackknight2[indexwanted];
+    }else if(whiterook1[pieceid]==peiceid){
+        return whiterook1[indexwanted];
+    }else if(whiterook2[pieceid]==peiceid){
+        return whiterook2[indexwanted];
+    }else if(blackrook1[pieceid]==peiceid){
+        return blackrook1[indexwanted];
+    }else if(blackrook2[pieceid]==peiceid){
+        return blackrook2[indexwanted];
+    }else if(whitepawn1[pieceid]==peiceid){
+        return whitepawn1[indexwanted];
+    }else if(whitepawn2[pieceid]==peiceid){
+        return whitepawn2[indexwanted];
+    }else if(whitepawn3[pieceid]==peiceid){
+        return whitepawn3[indexwanted];
+    }else if(whitepawn4[pieceid]==peiceid){
+        return whitepawn4[indexwanted];
+    }else if(whitepawn5[pieceid]==peiceid){
+        return whitepawn5[indexwanted];
+    }else if(whitepawn6[pieceid]==peiceid){
+        return whitepawn6[indexwanted];
+    }else if(whitepawn7[pieceid]==peiceid){
+        return whitepawn7[indexwanted];
+    }else if(whitepawn8[pieceid]==peiceid){
+        return whitepawn8[indexwanted];
+    }else if(blackpawn1[pieceid]==peiceid){
+        return blackpawn1[indexwanted];
+    }else if(blackpawn2[pieceid]==peiceid){
+        return blackpawn2[indexwanted];
+    }else if(blackpawn3[pieceid]==peiceid){
+        return blackpawn3[indexwanted];
+    }else if(blackpawn4[pieceid]==peiceid){
+        return blackpawn4[indexwanted];
+    }else if(blackpawn5[pieceid]==peiceid){
+        return blackpawn5[indexwanted];
+    }else if(blackpawn6[pieceid]==peiceid){
+        return blackpawn6[indexwanted];
+    }else if(blackpawn7[pieceid]==peiceid){
+        return blackpawn7[indexwanted];
+    }else if(blackpawn8[pieceid]==peiceid){
+        return blackpawn8[indexwanted];
+    }
+}
+void updatingpositionsafterimport(int peiceid, int index, int inputtednumber){
+    if(whitequeen[pieceid]==peiceid){
+        whitequeen[index]=inputtednumber;
+    }else if(blackqueen[pieceid]==peiceid){
+        blackqueen[index]=inputtednumber;
+    }else if(whiteking[pieceid]==peiceid){
+        whiteking[index]=inputtednumber;
+    }else if(blackking[pieceid]==peiceid){
+        blackking[index]=inputtednumber;
+    }else if(whitebishop1[pieceid]==peiceid){
+        whitebishop1[index]=inputtednumber;
+    }else if(whitebishop2[pieceid]==peiceid){
+        whitebishop2[index]=inputtednumber;
+    }else if(blackbishop1[pieceid]==peiceid){
+        blackbishop1[index]=inputtednumber;
+    }else if(blackbishop2[pieceid]==peiceid){
+        blackbishop2[index]=inputtednumber;
+    }else if(whiteknight1[pieceid]==peiceid){
+        whiteknight1[index]=inputtednumber;
+    }else if(whiteknight2[pieceid]==peiceid){
+        whiteknight2[index]=inputtednumber;
+    }else if(blackknight1[pieceid]==peiceid){
+        blackknight1[index]=inputtednumber;
+    }else if(blackknight2[pieceid]==peiceid){
+        blackknight2[index]=inputtednumber;
+    }else if(whiterook1[pieceid]==peiceid){
+        whiterook1[index]=inputtednumber;
+    }else if(whiterook2[pieceid]==peiceid){
+        whiterook2[index]=inputtednumber;
+    }else if(blackrook1[pieceid]==peiceid){
+        blackrook1[index]=inputtednumber;
+    }else if(blackrook2[pieceid]==peiceid){
+        blackrook2[index]=inputtednumber;
+    }else if(whitepawn1[pieceid]==peiceid){
+        whitepawn1[index]=inputtednumber;
+    }else if(whitepawn2[pieceid]==peiceid){
+        whitepawn2[index]=inputtednumber;
+    }else if(whitepawn3[pieceid]==peiceid){
+        whitepawn3[index]=inputtednumber;
+    }else if(whitepawn4[pieceid]==peiceid){
+        whitepawn4[index]=inputtednumber;
+    }else if(whitepawn5[pieceid]==peiceid){
+        whitepawn5[index]=inputtednumber;
+    }else if(whitepawn6[pieceid]==peiceid){
+        whitepawn6[index]=inputtednumber;
+    }else if(whitepawn7[pieceid]==peiceid){
+        whitepawn7[index]=inputtednumber;
+    }else if(whitepawn8[pieceid]==peiceid){
+        whitepawn8[index]=inputtednumber;
+    }else if(blackpawn1[pieceid]==peiceid){
+        blackpawn1[index]=inputtednumber;
+    }else if(blackpawn2[pieceid]==peiceid){
+        blackpawn2[index]=inputtednumber;
+    }else if(blackpawn3[pieceid]==peiceid){
+        blackpawn3[index]=inputtednumber;
+    }else if(blackpawn4[pieceid]==peiceid){
+        blackpawn4[index]=inputtednumber;
+    }else if(blackpawn5[pieceid]==peiceid){
+        blackpawn5[index]=inputtednumber;
+    }else if(blackpawn6[pieceid]==peiceid){
+        blackpawn6[index]=inputtednumber;
+    }else if(blackpawn7[pieceid]==peiceid){
+        blackpawn7[index]=inputtednumber;
+    }else if(blackpawn8[pieceid]==peiceid){
+        blackpawn8[index]=inputtednumber;
+    }
+}
 bool king(int peicelocation, int desiredlocation){
     int peiceid=peiceidentifier(peicelocation);
     bool moveallowed=false;
-    bool castle=false;
-    int rooklocation;
-    int newrooklocation;
-    if(desiredlocation/10-peicelocation/10==2&&peicelocation%10==desiredlocation%10){
+    castle=false;
+    if(peicelocation/10-desiredlocation/10==2&&peicelocation%10==desiredlocation%10){
+        moveallowed= true;
         castle=true;
         rooklocation=(peicelocation/10+3)*10+peicelocation%10;
         newrooklocation=(peicelocation/10+1)*10+peicelocation%10;
         if(peicehasbeenmoved(peiceid)==0&&peicehasbeenmoved(peiceidentifier(((peicelocation/10+3)*10+peicelocation%10)))==0){
-            for(int i=desiredlocation/10; i<=peicelocation/10; i++){
-                if(peiceidentifier(i+peicelocation%10)!=0){
+            for(int i=desiredlocation/10; i<peicelocation/10; i++){
+                if(peiceidentifier((i*10)+peicelocation%10)!=0){
                     castle=false;
-                    break;
+                    moveallowed=false;
+                    return moveallowed;
                 }
             }
         }else{
             castle=false;
+            moveallowed=false;
+            return moveallowed;
         }
-    }else if(peicelocation/10-desiredlocation/10==2&&peicelocation%10==desiredlocation%10){
+    }else if(desiredlocation/10-peicelocation/10==2&&peicelocation%10==desiredlocation%10){
+        moveallowed=true;
         castle=true;
-        rooklocation=(peicelocation/10-4)*10+peicelocation%10;
-        newrooklocation=(peicelocation/10-1)*10+peicelocation%10;
+        rooklocation=(peicelocation/10+3)*10+peicelocation%10;
+        newrooklocation=(peicelocation/10+1)*10+peicelocation%10;
         if(peicehasbeenmoved(peiceid)==0&&peicehasbeenmoved(peiceidentifier(((peicelocation/10-4)*10+peicelocation%10)))==0){
-            for(int i=peicelocation/10; i<=desiredlocation/10; i++){
-                if(peiceidentifier(i+peicelocation%10)!=0){
+            for(int i=peicelocation/10+1; i<=desiredlocation/10; i++){
+                if(peiceidentifier((i*10)+peicelocation%10)!=0){
                     castle=false;
-                    break;
+                    moveallowed=false;
+                    return moveallowed;
                 }
             }
         }else{
             castle=false;
+            moveallowed=false;
+            return moveallowed;
         }
     }else if(peicelocation/10-1==desiredlocation/10){
-        castle=false;
         if(peicelocation%10==desiredlocation%10){
             if(peiceidentifier(desiredlocation)==0||peicecolouridentifier(peiceid)!=peicecolouridentifier(peiceidentifier(desiredlocation))){
                 moveallowed=true;
@@ -894,45 +1189,28 @@ bool king(int peicelocation, int desiredlocation){
             }
         }
     }
-    if(moveallowed){
-        peicebeingkilled(peiceidentifier(desiredlocation));
-        peicelocationupdator(peiceid, desiredlocation);
-        cout<<peiceidentifier(desiredlocation)<<endl;
-        return true;
-    } else if(castle){
-        std::thread thread1(peicelocationupdator, peiceid, desiredlocation);
-        std::thread thread2(peicelocationupdator, peiceidentifier(rooklocation), newrooklocation);
-        thread1.join();
-        thread2.join();
-        cout<<peiceidentifier(desiredlocation)<<endl;
-        cout<<peiceidentifier(newrooklocation)<<endl;
-        cout<<newrooklocation<<endl;
-        peicemovedupdator(peiceidentifier(newrooklocation));
-        peicemovedupdator(peiceid);
-        return true;
-    }else{
-        return false;
-    }
+    return moveallowed;
 }
 bool queen(int peicelocation, int desiredlocation){
     int peiceid=peiceidentifier(peicelocation);
-    bool moveallowed=true;
+    bool moveallowed=false;
+    bool willkillapiece=false;
     if(abs(((peicelocation/10)-(desiredlocation/10)))==abs(((peicelocation%10)-(desiredlocation%10)))){
+        moveallowed=true;
         if(((peicelocation/10)-(desiredlocation/10))>0&&((peicelocation%10)-(desiredlocation%10))>0){//down and to the left
-            for(int i=1; i<=desiredlocation/10-peicelocation/10; i++){
-                cout<<peiceidentifier((peicelocation/10-i)*10+(peicelocation%10-i))<<endl;
+            for(int i=1; i<peicelocation/10-desiredlocation/10; i++){
                 if(peiceidentifier((peicelocation/10-i)*10+(peicelocation%10-i))!=0){
                     moveallowed=false;
                 }
             }
         }else if((peicelocation/10)-(desiredlocation/10)<0&&(peicelocation%10)-(desiredlocation%10)>0){//down and to the right
-            for(int i=1; i<=desiredlocation/10-peicelocation/10; i++){
+            for(int i=1; i<desiredlocation/10-peicelocation/10; i++){
                 if(peiceidentifier((peicelocation/10+i)*10+(peicelocation%10-i))!=0){
                     moveallowed=false;
                 }
             }
         }else if((peicelocation/10)-(desiredlocation/10)>0&&(peicelocation%10)-(desiredlocation%10)<0){//up and to the left
-            for(int i=1; i<=peicelocation/10-desiredlocation/10; i++){
+            for(int i=1; i<peicelocation/10-desiredlocation/10; i++){
                 if(peiceidentifier((peicelocation/10-i)*10+(peicelocation%10+i))!=0){
                     moveallowed=false;
                 }
@@ -945,6 +1223,7 @@ bool queen(int peicelocation, int desiredlocation){
             }
         }
     } else if(peicelocation%10==desiredlocation%10||peicelocation/10==desiredlocation/10){
+        moveallowed=true;
         if (peicelocation % 10 == desiredlocation % 10 && peicelocation / 10 != desiredlocation / 10) {
             if (peicelocation / 10 - desiredlocation / 10 < 0) {//right
                 for (int i = 1; i < desiredlocation / 10 - peicelocation / 10; i++) {
@@ -975,23 +1254,10 @@ bool queen(int peicelocation, int desiredlocation){
             }
         }
     }
-    if(peicecolouridentifier(peiceidentifier(desiredlocation))==peicecolouridentifier(peiceid)){
+    if(peicecolouridentifier(peiceidentifier(desiredlocation))==peicecolouridentifier(peiceid)||(peiceidentifier(desiredlocation)==blackking[pieceid]||peiceidentifier(desiredlocation)==whiteking[pieceid])){
         moveallowed=false;
-    }else if(peiceidentifier(desiredlocation)!=0){
-        cout<<peiceidentifier(desiredlocation)<<endl;
-        peicebeingkilled(peiceidentifier(desiredlocation));
-        moveallowed=true;
     }
-    if(moveallowed){
-        std::thread thread1(peicelocationupdator, peiceid, desiredlocation);
-        std::thread thread2(peicemovedupdator, peiceid);
-        thread1.join();
-        thread2.join();
-        cout<<peiceidentifier(desiredlocation)<<endl;
-        return true;
-    }else{
-        return false;
-    }
+    return moveallowed;
 }
 bool knight(int peicelocation, int desiredlocation){
     int peiceid=peiceidentifier(peicelocation);
@@ -1037,23 +1303,7 @@ bool knight(int peicelocation, int desiredlocation){
             }
         }
     }
-    if(moveallowed&&peicecolouridentifier(peiceidentifier(desiredlocation))!=peicecolouridentifier(peiceid)){
-        peicebeingkilled(peiceidentifier(desiredlocation));
-        std::thread thread1(peicelocationupdator, peiceid, desiredlocation);
-        std::thread thread2(peicemovedupdator, peiceid);
-        thread1.join();
-        thread2.join();
-        cout<<peiceidentifier(desiredlocation)<<endl;
-    }else if(moveallowed){
-        std::thread thread1(peicelocationupdator, peiceid, desiredlocation);
-        std::thread thread2(peicemovedupdator, peiceid);
-        thread1.join();
-        thread2.join();
-        cout<<peiceidentifier(desiredlocation);
-        return true;
-    }else{
-        return false;
-    }
+    return moveallowed;
 }
 bool rook(int peicelocation, int desiredlocation){
     if(peicelocation%10==desiredlocation%10||peicelocation/10==desiredlocation/10) {
@@ -1064,95 +1314,75 @@ bool rook(int peicelocation, int desiredlocation){
                 for (int i = 1; i < desiredlocation / 10 - peicelocation / 10; i++) {
                     if (peiceidentifier((peicelocation / 10 + i) * 10 + peicelocation % 10)!=0) {
                         moveallowed = false;
+                        break;
                     }
                 }
             } else if (peicelocation / 10 - desiredlocation / 10 > 0) {//left
                 for (int i = 1; i < peicelocation / 10 - desiredlocation / 10; i++) {
                     if (peiceidentifier((peicelocation / 10 - i) * 10 + peicelocation % 10)!=0) {
                         moveallowed = false;
+                        break;
                     }
                 }
             }
         } else if (peicelocation / 10 == desiredlocation / 10 && peicelocation % 10 != desiredlocation % 10) {
-            if (peicelocation % 10 - desiredlocation % 10 < 0) {
-                for (int i = 1; i < desiredlocation % 10 - peicelocation % 10; i++) {
+            if (peicelocation % 10 - desiredlocation % 10 < 0) {//down
+                for (int i = 1; i <= desiredlocation % 10 - peicelocation % 10; i++) {
                     if (peiceidentifier((peicelocation + i))!=0) {
                         moveallowed = false;
+                        break;
                     }
                 }
-            } else if (peicelocation % 10 - desiredlocation % 10 > 0) {
-                for (int i = 1; i < peicelocation - desiredlocation; i++) {
+            } else if (peicelocation % 10 - desiredlocation % 10 > 0) {//up
+                for (int i = 1; i <= peicelocation - desiredlocation; i++) {
                     if (peiceidentifier(peicelocation - i)!=0) {
                         moveallowed = false;
+                        break;
                     }
                 }
             }
         }
         if (peicecolouridentifier(peiceidentifier(desiredlocation)) == peicecolouridentifier(peiceid)) {
             moveallowed = false;
-        } else if (peiceidentifier(desiredlocation) != 0) {
-            cout << peiceidentifier(desiredlocation) << endl;
-            peicebeingkilled(peiceidentifier(desiredlocation));
-            moveallowed = true;
         }
-        if (moveallowed) {
-            peicelocationupdator(peiceid, desiredlocation);
-            cout << peiceidentifier(desiredlocation) << endl;
-            peicemovedupdator(peiceid);
-            return true;
-        }else{
-            return false;
-        }
+        return moveallowed;
     }
+    return false;
 }
 bool bishop(int peicelocation, int desiredlocation){
-    bool moveallowed=true;
-    int peiceid=peiceidentifier(peicelocation);
+    bool moveallowed=false;
     if(abs(((peicelocation/10)-(desiredlocation/10)))==abs(((peicelocation%10)-(desiredlocation%10)))){
         if(((peicelocation/10)-(desiredlocation/10))>0&&((peicelocation%10)-(desiredlocation%10))>0){//down and to the left
-            for(int i=1; i<=desiredlocation/10-peicelocation/10; i++){
-                cout<<peiceidentifier((peicelocation/10-i)*10+(peicelocation%10-i))<<endl;
+            moveallowed=true;
+            for(int i=1; i<peicelocation/10-desiredlocation/10; i++){
                 if(peiceidentifier((peicelocation/10-i)*10+(peicelocation%10-i))!=0){
                     moveallowed=false;
                 }
             }
         }else if((peicelocation/10)-(desiredlocation/10)<0&&(peicelocation%10)-(desiredlocation%10)>0){//down and to the right
-            for(int i=1; i<=desiredlocation/10-peicelocation/10; i++){
+            moveallowed=true;
+            for(int i=1; i<desiredlocation/10-peicelocation/10; i++){
                 if(peiceidentifier((peicelocation/10+i)*10+(peicelocation%10-i))!=0){
                     moveallowed=false;
                 }
             }
         }else if((peicelocation/10)-(desiredlocation/10)>0&&(peicelocation%10)-(desiredlocation%10)<0){//up and to the left
-            for(int i=1; i<=peicelocation/10-desiredlocation/10; i++){
+            moveallowed=true;
+            for(int i=1; i<peicelocation/10-desiredlocation/10; i++){
                 if(peiceidentifier((peicelocation/10-i)*10+(peicelocation%10+i))!=0){
                     moveallowed=false;
                 }
             }
         }else if((peicelocation/10)-(desiredlocation/10)<0&&(peicelocation%10)-(desiredlocation%10)<0){// up and to the right
+            moveallowed=true;
             for(int i=1; i<desiredlocation/10-peicelocation/10; i++){
                 if(peiceidentifier((peicelocation/10+i)*10+(peicelocation%10+i))!=0){
                     moveallowed=false;
                 }
             }
         }
-        if(peicecolouridentifier(peiceidentifier(desiredlocation))==peicecolouridentifier(peiceid)){
-            moveallowed=false;
-        }else if(peiceidentifier(desiredlocation)!=0){
-            cout<<peiceidentifier(desiredlocation)<<endl;
-            peicebeingkilled(peiceidentifier(desiredlocation));
-            moveallowed=true;
-        }
-        if(moveallowed){
-            std::thread thread1(peicelocationupdator, peiceid, desiredlocation);
-            std::thread thread2(peicemovedupdator, peiceid);
-            thread1.join();
-            thread2.join();
-            cout<<peiceidentifier(desiredlocation)<<endl;
-            return true;
-        }else{
-            return false;
-        }
     }
+    return moveallowed;
 }
 bool pawns(int peicelocation, int desiredlocation){
     int peiceid=peiceidentifier(peicelocation);
@@ -1165,16 +1395,12 @@ bool pawns(int peicelocation, int desiredlocation){
         }
         if((peicelocation/10-1)*10+peicelocation%10+1==desiredlocation&&peiceidentifier(desiredlocation)!=0&&peicecolouridentifier(peiceidentifier(desiredlocation))!=peicecolouridentifier(peiceid)){
             moveallowed=true;
-            cout<<peiceidentifier(desiredlocation)<<endl;
-            peicebeingkilled(peiceidentifier(desiredlocation));
         }
         if(peicelocation+1==desiredlocation&&peiceidentifier(desiredlocation)==0){
             moveallowed=true;
         }
         if((peicelocation/10+1)*10+peicelocation%10+1==desiredlocation&&peiceidentifier(desiredlocation)!=0&&peicecolouridentifier(peiceidentifier(desiredlocation))!=peicecolouridentifier(peiceid)){
             moveallowed=true;
-            cout<<peiceidentifier(desiredlocation)<<endl;
-            peicebeingkilled(peiceidentifier(desiredlocation));
         }
     }else if(peicecolouridentifier(peiceid)==0){//black
         if(peicehasbeenmoved(peiceid)==0){
@@ -1184,41 +1410,54 @@ bool pawns(int peicelocation, int desiredlocation){
         }
         if((peicelocation/10-1)*10+peicelocation%10-1==desiredlocation&&peiceidentifier(desiredlocation)!=0&&peicecolouridentifier(peiceidentifier(desiredlocation))!=peicecolouridentifier(peiceid)){
             moveallowed=true;
-            cout<<peiceidentifier(desiredlocation)<<endl;
-            peicebeingkilled(peiceidentifier(desiredlocation));
         }
         if(peicelocation-1==desiredlocation&&peiceidentifier(desiredlocation)==0){
             moveallowed=true;
         }
         if((peicelocation/10+1)*10+peicelocation%10-1==desiredlocation&&peiceidentifier(desiredlocation)!=0&&peicecolouridentifier(peiceidentifier(desiredlocation))!=peicecolouridentifier(peiceid)){
             moveallowed=true;
-            cout<<peiceidentifier(desiredlocation)<<endl;
-            peicebeingkilled(peiceidentifier(desiredlocation));
         }
     }
-    if(moveallowed){
-        std::thread thread1(peicelocationupdator, peiceid, desiredlocation);
-        std::thread thread2(peicemovedupdator, peiceid);
-        thread1.join();
-        thread2.join();
-        cout<<peiceidentifier(desiredlocation)<<endl;
-        return true;
-    }else{
-        return false;
+    return moveallowed;
+}
+void generatealllegalmoves(int color){
+    bool legalmove;
+    for(int i=1; i<=32; i++){
+        int peicelocation=peicefinder(i);
+        for(int j=1; j<9; j++){
+            for(int z=1; z<9; z++){
+                if(i==1||i==2){
+                    legalmove=queen(peicelocation, j*10+z);
+                }else if(i==15||i==16){
+                    legalmove=king(peicelocation, j*10+z);
+                }else if(i<=6&&i>=3){
+                    legalmove=bishop(peicelocation, j*10+z);
+                }else if(i>=11&&i<=14){
+                    legalmove=knight(peicelocation, j*10+z);
+                }else if(i<=10&&i>=7){
+                    legalmove=rook(peicelocation, j*10+z);
+                }else if(i<=32&&i>=17){
+                    legalmove=pawns(peicelocation, j*10+z);
+                }
+                if(legalmove){
+                    if(peicecolouridentifier(i)==color) {
+                        usedtosenddatatostack.peicelocation = peicelocation;
+                        usedtosenddatatostack.desiredlocation = j * 10 + z;
+                        allmovesallowedincurrentstate.push(usedtosenddatatostack);
+                    }
+                }
+            }
+        }
     }
 }
 bool MoveNotAllowed(){
     cout<<"Move Not Allowed"<<endl;
     return true;
 }
-bool check(int colour){
+bool check(bool color, int kinglocation){
     bool blackkingcheck=false;
     bool whitekingcheck=false;
-    int peiceid;
-    int kinglocation;
-    if(colour==0){
-        peiceid=blackking[pieceid];
-        kinglocation=peicefinder(peiceid);
+    if(!color){
         if(peiceidentifier((kinglocation/10+2)*10+kinglocation%10+1)==whiteknight1[pieceid]||peiceidentifier((kinglocation/10+2)*10+kinglocation%10+1)==whiteknight2[pieceid]){
             blackkingcheck=true;
         }else if(peiceidentifier((kinglocation/10+2)*10+kinglocation%10-1)==whiteknight1[pieceid]||peiceidentifier((kinglocation/10+2)*10+kinglocation%10-1)==whiteknight2[pieceid]){
@@ -1281,23 +1520,21 @@ bool check(int colour){
         }
         if(!blackkingcheck){
             for(int i=kinglocation/10; i>=1; i--){
-                if(peiceidentifier((kinglocation/10+i)*10+kinglocation%10)==whiterook1[pieceid]||
-                peiceidentifier((kinglocation/10+i)*10+kinglocation%10)==whiterook2[pieceid]||
-                peiceidentifier((kinglocation/10+i)*10+kinglocation%10)==whitequeen[pieceid]){
+                if(peiceidentifier((kinglocation/10-(kinglocation/10-i))*10+kinglocation%10)==whiterook1[pieceid]||
+                peiceidentifier((kinglocation/10-(kinglocation/10-i))*10+kinglocation%10)==whiterook2[pieceid]||
+                peiceidentifier((kinglocation/10-(kinglocation/10-i))*10+kinglocation%10)==whitequeen[pieceid]){
                     blackkingcheck=true;
                     break;
-                }else if(peiceidentifier((kinglocation/10+i)*10+kinglocation%10)!=0&&
-                         peiceidentifier((kinglocation/10+i)*10+kinglocation%10)!=peiceidentifier(kinglocation)){
+                }else if(peiceidentifier((kinglocation/10-(kinglocation/10-i))*10+kinglocation%10)!=0&&
+                         peiceidentifier((kinglocation/10-(kinglocation/10-i))*10+kinglocation%10)!=peiceidentifier(kinglocation)){
                     break;
                 }
             }
         }
         if(!blackkingcheck){
-            cout<<"Made it to line 1287"<<endl;
             int i=kinglocation/10+1;
             int j=kinglocation%10+1;
             while(i<=8&&j<=8){
-                cout<<(i*10)+j<<endl;
                 if(peiceidentifier((i)*10+j)==whitebishop1[pieceid]||
                    peiceidentifier((i)*10+j)==whitebishop2[pieceid]||
                    peiceidentifier((i)*10+j)==whitequeen[pieceid]){
@@ -1311,11 +1548,9 @@ bool check(int colour){
             }
         }
         if(!blackkingcheck){
-            cout<<"Made it to line 1306"<<endl;
             int i=kinglocation/10-1;
             int j=kinglocation%10+1;
             while(i>=1&&j<=8){
-                cout<<(i*10)+j<<endl;
                 if(peiceidentifier((i)*10+j)==whitebishop1[pieceid]||
                    peiceidentifier((i)*10+j)==whitebishop2[pieceid]||
                    peiceidentifier((i)*10+j)==whitequeen[pieceid]){
@@ -1329,11 +1564,9 @@ bool check(int colour){
             }
         }
         if(!blackkingcheck){
-            cout<<"Made it to line 1325"<<endl;
             int i=kinglocation/10+1;
             int j=kinglocation%10-1;
             while(i<=8&&j>=1){
-                cout<<(i*10)+j<<endl;
                 if(peiceidentifier((i)*10+j)==whitebishop1[pieceid]||
                    peiceidentifier((i)*10+j)==whitebishop2[pieceid]||
                    peiceidentifier((i)*10+j)==whitequeen[pieceid]){
@@ -1347,12 +1580,9 @@ bool check(int colour){
             }
         }
         if(!blackkingcheck){
-            cout<<"Made it to line 1344"<<endl;
             int i=kinglocation/10-1;
             int j=kinglocation%10-1;
             while(i>=1&&j>=1){
-                cout<<(i*10)+j<<endl;
-            //for(int i=kinglocation/10-1, j=kinglocation%10-1; i>=1&&j>=1; i--, j--){
                 if (peiceidentifier((i) * 10 + j) == whitebishop1[pieceid] ||
                     peiceidentifier((i) * 10 + j) == whitebishop2[pieceid] ||
                     peiceidentifier((i) * 10 + j) == whitequeen[pieceid]) {
@@ -1367,8 +1597,6 @@ bool check(int colour){
         }
         return blackkingcheck;
     }else{
-        peiceid=whiteking[pieceid];
-        kinglocation=peicefinder(peiceid);
         if(peiceidentifier((kinglocation/10+2)*10+kinglocation%10+1)==blackknight1[pieceid]||peiceidentifier((kinglocation/10+2)*10+kinglocation%10+1)==blackknight2[pieceid]){
             whitekingcheck=true;
         }else if(peiceidentifier((kinglocation/10+2)*10+kinglocation%10-1)==blackknight1[pieceid]||peiceidentifier((kinglocation/10+2)*10+kinglocation%10-1)==blackknight2[pieceid]){
@@ -1385,9 +1613,9 @@ bool check(int colour){
             whitekingcheck=true;
         }else if(peiceidentifier((kinglocation/10-2)*10+kinglocation%10-1)==blackknight1[pieceid]||peiceidentifier((kinglocation/10-2)*10+kinglocation%10-1)==blackknight2[pieceid]) {
             whitekingcheck=true;
-        }else if(peiceidentifier((kinglocation/10-1)*10+kinglocation%10-1)>=blackpawn1[pieceid]&&peiceidentifier((kinglocation/10-1)*10+kinglocation%10-1)<=blackpawn8[pieceid]){
+        }else if(peiceidentifier((kinglocation/10-1)*10+kinglocation%10+1)>=blackpawn1[pieceid]&&peiceidentifier((kinglocation/10-1)*10+kinglocation%10-1)<=blackpawn8[pieceid]){
             whitekingcheck=true;
-        }else if(peiceidentifier((kinglocation/10+1)*10+kinglocation%10-1)>=blackpawn1[pieceid]&&peiceidentifier((kinglocation/10+1)*10+kinglocation%10-1)<=blackpawn8[pieceid]){
+        }else if(peiceidentifier((kinglocation/10+1)*10+kinglocation%10+1)>=blackpawn1[pieceid]&&peiceidentifier((kinglocation/10+1)*10+kinglocation%10-1)<=blackpawn8[pieceid]){
             whitekingcheck=true;
         }
         if(!whitekingcheck) {
@@ -1431,30 +1659,27 @@ bool check(int colour){
         }
         if(!whitekingcheck){
             for(int i=kinglocation/10; i>=1; i--){
-                if(peiceidentifier((kinglocation/10+i)*10+kinglocation%10)==blackrook1[pieceid]||
-                   peiceidentifier((kinglocation/10+i)*10+kinglocation%10)==blackrook2[pieceid]||
-                   peiceidentifier((kinglocation/10+i)*10+kinglocation%10)==blackqueen[pieceid]){
+                if(peiceidentifier((kinglocation/10-(kinglocation/10-i))*10+kinglocation%10)==blackrook1[pieceid]||
+                   peiceidentifier((kinglocation/10-(kinglocation/10-i))*10+kinglocation%10)==blackrook2[pieceid]||
+                   peiceidentifier((kinglocation/10-(kinglocation/10-i))*10+kinglocation%10)==blackqueen[pieceid]){
                     whitekingcheck=true;
                     break;
-                }else if(peiceidentifier((kinglocation/10+i)*10+kinglocation%10)!=0&&
-                         peiceidentifier((kinglocation/10+i)*10+kinglocation%10)!=peiceidentifier(kinglocation)){
+                }else if(peiceidentifier((kinglocation/10-(kinglocation/10-i))*10+kinglocation%10)!=0&&
+                         peiceidentifier((kinglocation/10-(kinglocation/10-i))*10+kinglocation%10)!=peiceidentifier(kinglocation)){
                     break;
                 }
             }
         }
         if(!whitekingcheck){
-            cout<<"Made it to line 1441"<<endl;
             int i=kinglocation/10+1;
             int j=kinglocation%10+1;
             while(i<=8&&j<=8){
-                cout<<(i*10)+j<<endl;
                 if(peiceidentifier((i)*10+j)==blackbishop1[pieceid]||
                    peiceidentifier((i)*10+j)==blackbishop2[pieceid]||
                    peiceidentifier((i)*10+j)==blackqueen[pieceid]){
                     whitekingcheck=true;
                     break;
-                }else if(peiceidentifier((i)*10+j)!=0||
-                         peiceidentifier((i)*10+j)!=peiceidentifier(kinglocation)){
+                }else if(peiceidentifier((i)*10+j)!=0){
                     break;
                 }
                 i++;
@@ -1462,18 +1687,15 @@ bool check(int colour){
             }
         }
         if(!whitekingcheck){
-            cout<<"Made it to line 1460"<<endl;
             int i=kinglocation/10-1;
             int j=kinglocation%10+1;
             while(i>=1&&j<=8){
-                cout<<(i*10)+j<<endl;
                 if(peiceidentifier((i)*10+j)==blackbishop1[pieceid]||
                    peiceidentifier((i)*10+j)==blackbishop2[pieceid]||
                    peiceidentifier((i)*10+j)==blackqueen[pieceid]){
                     whitekingcheck=true;
                     break;
-                }else if(peiceidentifier((i)*10+j)!=0||
-                         peiceidentifier((i)*10+j)!=peiceidentifier(kinglocation)){
+                }else if(peiceidentifier((i)*10+j)!=0){
                     break;
                 }
                 i--;
@@ -1481,18 +1703,15 @@ bool check(int colour){
             }
         }
         if(!whitekingcheck){
-            cout<<"Made it to line 1479"<<endl;
             int i=kinglocation/10+1;
             int j=kinglocation%10-1;
             while(i<=8&&j>=1){
-                cout<<(i*10)+j<<endl;
                 if(peiceidentifier((i)*10+j)==blackbishop1[pieceid]||
                    peiceidentifier((i)*10+j)==blackbishop2[pieceid]||
                    peiceidentifier((i)*10+j)==blackqueen[pieceid]){
                     whitekingcheck=true;
                     break;
-                }else if(peiceidentifier((i)*10+j)!=0||
-                         peiceidentifier((i)*10+j)!=peiceidentifier(kinglocation)){
+                }else if(peiceidentifier((i)*10+j)!=0){
                     break;
                 }
                 i++;
@@ -1500,18 +1719,15 @@ bool check(int colour){
             }
         }
         if(!whitekingcheck){
-            cout<<"Made it to line 1498"<<endl;
             int i=kinglocation/10-1;
             int j=kinglocation%10-1;
             while(i>=1&&j>=1){
-                cout<<(i*10)+j<<endl;
                 if (peiceidentifier((i) * 10 + j) == blackbishop1[pieceid] ||
                     peiceidentifier((i) * 10 + j) == blackbishop2[pieceid] ||
                     peiceidentifier((i) * 10 + j) == blackqueen[pieceid]) {
                     whitekingcheck = true;
                     break;
-                } else if (peiceidentifier((i) * 10 + j) != 0 ||
-                           peiceidentifier((i) * 10 + j) != peiceidentifier(kinglocation)) {
+                } else if (peiceidentifier((i) * 10 + j) != 0) {
                     break;
                 }
                 i--;
@@ -1521,42 +1737,162 @@ bool check(int colour){
         return whitekingcheck;
     }
 }
+bool checkmate(bool color){
+    int kingid;
+    if(color){
+        kingid=15;
+    }else{
+        kingid=16;
+    }
+    if(!check(color, peicefinder(kingid))){
+        return false;
+    }
+    for(int i=0; i<32; i++){
+        for(int j=0; j<6; j++){
+            currentstate.pieces[i][j]=returnsspecificvaluerequiredofpeice(i+1, j);
+        }
+    }
+    while(!allmovesallowedincurrentstate.empty()){
+        allmovesallowedincurrentstate.pop();
+    }
+    generatealllegalmoves(color);
+    for(int i=0; i<allmovesallowedincurrentstate.size(); i++){
+        peicebeingkilled(peiceidentifier(allmovesallowedincurrentstate.top().desiredlocation));
+        peicelocationupdator(allmovesallowedincurrentstate.top().peicelocation, allmovesallowedincurrentstate.top().desiredlocation);
+        allmovesallowedincurrentstate.pop();
+        if(!check(coloursturn, kingid)){
+            return false;
+        }
+        for(int j=0; j<32; j++){
+            for(int z=0; z<6; z++){
+                updatingpositionsafterimport(currentstate.pieces[j][3], z, currentstate.pieces[j][z]);
+            }
+        }
+    }
+    return true;
+}
+void fromimportedstringtoactualdata(const string& importdata){
+    vector<int> workinginformation;
+    stringstream data(importdata);
+    for(int i; data>>i;){
+        workinginformation.push_back(i);
+        if(data.peek()==','){
+            data.ignore();
+        }
+    }
+    for(int i=0; i<32; i++){
+        for(int j=0; j<6; j++){
+            updatingpositionsafterimport(workinginformation[i*6+3], j, workinginformation[i*6+j]);
+        }
+    }int size=workinginformation.size();
+    movecounter=workinginformation[size-1];
+    coloursturn=workinginformation[size-2];
+}
+void importdatafromfile(){
+    string importdatafromfiletoworkwith;
+    ifstream importingfile;
+    importingfile.open("Saves.dat");
+    if(importingfile.is_open()){
+        cout<<"Importing Data"<<endl;
+        getline(importingfile, importdatafromfiletoworkwith);
+        fromimportedstringtoactualdata(importdatafromfiletoworkwith);
+        cout<<"Data Imported Successfully"<<endl;
+    }
+    importingfile.close();
+}
+void savedatatofile(){
+    ofstream savingfile;
+    savingfile.open("Saves.dat");
+    if(savingfile.is_open()){
+        cout<<"Saving Data"<<endl;
+        for(int i=1; i<=32; i++){
+            for(int j=0; j<6; j++){
+                savingfile<<returnsspecificvaluerequiredofpeice(i, j)<<",";
+            }
+        }
+        savingfile<<coloursturn<<",";
+        savingfile<<movecounter;
+        cout<<"Data Saved Successfully"<<endl;
+        savingfile.close();
+    }else{
+        cout<<"Error Opening File"<<endl;
+    }
+}
+void printboard(){
+    int peiceid;
+    int numberofspaces;
+    for(int i=8; i>=1; i--){
+        for(int j=1; j<=8; j++){
+            peiceid=peiceidentifier((j*10)+i);
+            if(peiceid<10){
+                numberofspaces=1;
+            }else{
+                numberofspaces=0;
+            }
+            cout<<"| "<<peiceid;
+            if(numberofspaces==1){
+                cout<<" ";
+            }
+            cout<<" |";
+        }
+        cout<<endl;
+    }
+}
 int maininputthing(){
     getline(cin, actualcharactetest);
-    firstcharacter=toupper(actualcharactetest[0]);
-    int horizontalvalue=0;
-    string a="A";
-    string b="B";
-    string c="C";
-    string d="D";
-    string e="E";
-    string f="F";
-    string g="G";
-    string h="H";
-    if(!firstcharacter.compare(a)){
-        horizontalvalue=1;
-    }else if(!firstcharacter.compare(b)){
-        horizontalvalue=2;
-    }else if(!firstcharacter.compare(c)){
-        horizontalvalue=3;
-    }else if(!firstcharacter.compare(d)){
-        horizontalvalue=4;
-    }else if(!firstcharacter.compare(e)){
-        horizontalvalue=5;
-    }else if(!firstcharacter.compare(f)){
-        horizontalvalue=6;
-    }else if(!firstcharacter.compare(g)){
-        horizontalvalue=7;
-    }else if(!firstcharacter.compare(h)){
-        horizontalvalue=8;
-    }else{
-        horizontalvalue=9;
+    transform(actualcharactetest.begin(), actualcharactetest.end(),actualcharactetest.begin(), ::toupper);
+    if(actualcharactetest=="IMPORT"){
+        return 0;
+    }else if(actualcharactetest=="SAVE"){
+        return 1;
+    }else if(actualcharactetest=="RESET"){
+        cout<<"Resetting board"<<endl;
+        return 2;
+    }else if(actualcharactetest=="EXIT"){
+        cout<<"Exiting";
+        return 3;
+    }else if(actualcharactetest=="PRINT"){
+        return 4;
+    }else if(actualcharactetest=="CHECK LOCATION"){
+        return 5;
+    }else if(actualcharactetest=="CHECK LEGAL"){
+        return 6;
+    }else {
+        firstcharacter = toupper(actualcharactetest[0]);
+        int horizontalvalue = 0;
+        string a = "A";
+        string b = "B";
+        string c = "C";
+        string d = "D";
+        string e = "E";
+        string f = "F";
+        string g = "G";
+        string h = "H";
+        if (!firstcharacter.compare(a)) {
+            horizontalvalue = 1;
+        } else if (!firstcharacter.compare(b)) {
+            horizontalvalue = 2;
+        } else if (!firstcharacter.compare(c)) {
+            horizontalvalue = 3;
+        } else if (!firstcharacter.compare(d)) {
+            horizontalvalue = 4;
+        } else if (!firstcharacter.compare(e)) {
+            horizontalvalue = 5;
+        } else if (!firstcharacter.compare(f)) {
+            horizontalvalue = 6;
+        } else if (!firstcharacter.compare(g)) {
+            horizontalvalue = 7;
+        } else if (!firstcharacter.compare(h)) {
+            horizontalvalue = 8;
+        } else {
+            horizontalvalue = 9;
+        }
+        secondcharacter = actualcharactetest[1];
+        stringstream stringstream1(secondcharacter);
+        int verticalvalue = 0;
+        stringstream1 >> verticalvalue;
+        return (horizontalvalue * 10) + verticalvalue;
     }
-    secondcharacter=actualcharactetest[1];
-    stringstream stringstream1(secondcharacter);
-    int verticalvalue=0;
-    stringstream1>>verticalvalue;
-    return (horizontalvalue*10)+verticalvalue;
 }
 void returnstostatebeforemove(){
     for(int i=1; i<9; i++){
@@ -1564,21 +1900,23 @@ void returnstostatebeforemove(){
             peicelocationupdator(backtrackingdata.board[i][j], i*10+j);
         }
     }
+    peicelocationupdator(backtrackingdata.piecethatwasjustmoved, backtrackingdata.wherepiecethatwasmovedmovedfrom);
     if(backtrackingdata.piecethatwaskilled!=0){
-
+        peicelocationupdator(backtrackingdata.piecethatwaskilled, backtrackingdata.wherepiecemoved);
+        peicebeingbacktracked(backtrackingdata.piecethatwaskilled);
     }
 }
 int main(){
-    std::thread thread1(resetboard);
-    thread1.detach();
-    coloursturn=true;
+    resetboard();
     int peicelocation;
     int desiredlocation;
     int peiceid;
     bool inproperinput=true;
-    while(!checkmate){
+    dataimported:
+    while(!checkmate(coloursturn)){
+        printboard();
+        castle=false;
         movecounter++;
-        cout<<coloursturn<<endl;
         for(int i=1; i<9; i++){
             for(int j=1; j<8; j++){
                 backtrackingdata.board[i][j]=peiceidentifier(i*10+j);
@@ -1588,8 +1926,59 @@ int main(){
             catchcheck:
             cout << "enter piece you would like to move" << endl;
             peicelocation=maininputthing();
+            if(peicelocation==0){
+                importdatafromfile();
+                goto dataimported;
+            }else if(peicelocation==1){
+                savedatatofile();
+                goto dataimported;
+            }else if(peicelocation==2){
+                resetboard();
+                goto dataimported;
+            }else if(peicelocation==3){
+                return 0;
+            }else if(peicelocation==4){
+                cout<<"Printing board"<<endl;
+                goto dataimported;
+            }else if(peicelocation==5){
+                cout<<"enter piece location"<<endl;
+                peiceprinter(maininputthing());
+                goto dataimported;
+            }else if(peicelocation==6){
+                generatealllegalmoves(coloursturn);
+                while(!allmovesallowedincurrentstate.empty()){
+                    cout<<allmovesallowedincurrentstate.top().peicelocation<<endl;
+                    cout<<allmovesallowedincurrentstate.top().desiredlocation<<endl;
+                    allmovesallowedincurrentstate.pop();
+                }
+                goto dataimported;
+            }
+            backtrackingdata.wherepiecethatwasmovedmovedfrom=peicelocation;
             cout << "enter location you would like to move to" << endl;
             desiredlocation=maininputthing();
+            if(desiredlocation==0){
+                importdatafromfile();
+                goto dataimported;
+            }else if(desiredlocation==1){
+                savedatatofile();
+                goto dataimported;
+            }else if(desiredlocation==2){
+                resetboard();
+                goto dataimported;
+            }else if(desiredlocation==3){
+                return 0;
+            }else if(desiredlocation==4){
+                cout<<"Printing board"<<endl;
+                printboard();
+                goto dataimported;
+            }else if(desiredlocation==5){
+                cout<<"enter piece location"<<endl;
+                peiceprinter(maininputthing());
+                goto dataimported;
+            }else if(desiredlocation==6){
+                generatealllegalmoves(coloursturn);
+                goto dataimported;
+            }
             if(peicelocation/10>=1&&peicelocation/10<=8&&peicelocation%10<=8&&peicelocation%10>=1&&desiredlocation/10>=1&&desiredlocation/10<=8&&desiredlocation%10<=8&&desiredlocation%10>=1){
                 if((peicecolouridentifier(peiceidentifier(peicelocation))==1&&coloursturn)||(peicecolouridentifier(peiceidentifier(peicelocation))==0&&!coloursturn)){
                     inproperinput=false;
@@ -1605,9 +1994,6 @@ int main(){
             }
             if(!inproperinput){
                 bool allowed;
-                if(peiceidentifier(desiredlocation)!=0&&peicecolouridentifier(peiceidentifier(desiredlocation))==!coloursturn){
-                    backtrackingdata.piecethatwaskilled=peiceidentifier(desiredlocation);
-                }
                 peiceid=peiceidentifier(peicelocation);
                 if(peiceid==1||peiceid==2){
                     allowed=queen(peicelocation, desiredlocation);
@@ -1640,28 +2026,46 @@ int main(){
                         inproperinput=MoveNotAllowed();
                     }
                 }
+                if(allowed){
+                    if(castle){
+                        thread thread1(peicelocationupdator, peiceid, desiredlocation);
+                        thread thread2(peicelocationupdator, peiceidentifier(rooklocation), newrooklocation);
+                        thread1.join();
+                        thread2.join();
+                        peicemovedupdator(peiceidentifier(newrooklocation));
+                        peicemovedupdator(peiceid);
+
+                    }else {
+                        if(peiceidentifier(desiredlocation)!=0&&peicecolouridentifier(peiceidentifier(desiredlocation))==!coloursturn){
+                            backtrackingdata.piecethatwaskilled=peiceidentifier(desiredlocation);
+                        }
+                        peicebeingkilled(peiceidentifier(desiredlocation));
+                        thread thread1(peicelocationupdator, peiceid, desiredlocation);
+                        thread thread2(peicemovedupdator, peiceid);
+                        thread1.join();
+                        thread2.join();
+                    }
+                }
             }
         }
         backtrackingdata.piecethatwasjustmoved=peiceid;
         backtrackingdata.turn=coloursturn;
         backtrackingdata.turncount=movecounter;
+        backtrackingdata.wherepiecemoved=desiredlocation;
         bool willbacktrack;
         if(coloursturn){
-            willbacktrack=check(1);
+            willbacktrack=check(coloursturn, peicefinder(15));
         }else{
-            willbacktrack=check(0);
+            willbacktrack=check(coloursturn, peicefinder(16));
         }
         if(willbacktrack){
             movecounter=backtrackingdata.turncount;
-            cout<<"You Moved Into Check"<<endl;
+            returnstostatebeforemove();
+            cout<<"You Are In Check"<<endl;
             goto catchcheck;
         }
-        if(coloursturn){
-            coloursturn=false;
-        }else{
-            coloursturn=true;
-        }
-        if(checkmate){
+        coloursturn = !coloursturn;
+        if(checkmate(coloursturn)){
             break;
         }
         inproperinput=true;
@@ -1671,4 +2075,10 @@ int main(){
             cout << movecounter / 2 << endl;
         }
     }
+    if(!coloursturn){
+        cout<<"White Wins";
+    }else{
+        cout<<"Black Wins";
+    }
+    return 5611;
 }
