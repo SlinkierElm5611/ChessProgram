@@ -12,10 +12,6 @@
 #include <vector>
 #include <stack>
 using namespace std;
-struct pieceInformation{
-    int x, y, colour, pieceid, dead, peicemovecounter, piecevalue;
-};
-vector<pieceInformation> Pieces;
 int const x=0;
 int const y=1;
 int const colour=2;
