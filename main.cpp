@@ -12,13 +12,14 @@
 #include <vector>
 #include <stack>
 using namespace std;
+int pieces [32][8];
 int const x=0;
 int const y=1;
 int const colour=2;
 int const pieceid=3;
 int const dead=4;
 int const peicemovecounter=5;
-int const piecevalue=6;
+int const piecetype=6;
 bool coloursturn;
 string actualcharactetest;
 string firstcharacter;
