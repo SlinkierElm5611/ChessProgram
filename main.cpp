@@ -317,8 +317,8 @@ bool queen(int peicelocation, int desiredlocation){
                 }
             }
         }else if((peicelocation/10)-(desiredlocation/10)>0&&(peicelocation%10)-(desiredlocation%10)<0){//up and to the left
-            for(int i=1; i<peicelocation/10-desiredlocation/10; i++){
-                if(peiceidentifier((peicelocation/10-i)*10+(peicelocation%10+i))!=0){
+            for(int i=0; i<peicelocation/10-desiredlocation/10; i++){
+                if(peiceidentifier((peicelocation/10-i)*10+(peicelocation%10+i))!=0&&peiceidentifier((peicelocation/10-i)*10+(peicelocation%10+i))!=peiceid){
                     moveallowed=false;
                 }
             }
@@ -528,7 +528,7 @@ bool pawns(int peicelocation, int desiredlocation){
     return moveallowed;
 }
 void generatealllegalmoves(int color){
-    bool legalmove;
+    bool legalmove=false;
     for(int i=1; i<=32; i++){
         int peicelocation=peicefinder(i);
         for(int j=1; j<9; j++){
@@ -641,15 +641,15 @@ bool check(bool color, int kinglocation){
             }
         }
         if(!blackkingcheck){
-            int i=kinglocation/10+1;
-            int j=kinglocation%10+1;
+            int i=kinglocation/10;
+            int j=kinglocation%10;
             while(i<=8&&j<=8){
                 if((peicetype(peiceidentifier((i)*10+j))==3||
                     peicetype(peiceidentifier((i)*10+j))==2)&&
                     peicecolouridentifier(peiceidentifier((i)*10+j))==1){
                     blackkingcheck=true;
                     break;
-                }else if(peiceidentifier((i)*10+j)!=0){
+                }else if(peiceidentifier((i)*10+j)!=0&&peiceidentifier((i)*10+j)!=peiceidentifier(kinglocation)){
                     break;
                 }
                 i++;
@@ -657,15 +657,15 @@ bool check(bool color, int kinglocation){
             }
         }
         if(!blackkingcheck){
-            int i=kinglocation/10-1;
-            int j=kinglocation%10+1;
+            int i=kinglocation/10;
+            int j=kinglocation%10;
             while(i>=1&&j<=8){
                 if((peicetype(peiceidentifier((i)*10+j))==3||
                     peicetype(peiceidentifier((i)*10+j))==2)&&
                     peicecolouridentifier(peiceidentifier((i)*10+j))==1){
                     blackkingcheck=true;
                     break;
-                }else if(peiceidentifier((i)*10+j)!=0){
+                }else if(peiceidentifier((i)*10+j)!=0&&peiceidentifier((i)*10+j)!=peiceidentifier(kinglocation)){
                     break;
                 }
                 i--;
@@ -673,15 +673,15 @@ bool check(bool color, int kinglocation){
             }
         }
         if(!blackkingcheck){
-            int i=kinglocation/10+1;
-            int j=kinglocation%10-1;
+            int i=kinglocation/10;
+            int j=kinglocation%10;
             while(i<=8&&j>=1){
                 if((peicetype(peiceidentifier((i)*10+j))==3||
                     peicetype(peiceidentifier((i)*10+j))==2)&&
                     peicecolouridentifier(peiceidentifier((i)*10+j))==1){
                     blackkingcheck=true;
                     break;
-                }else if(peiceidentifier((i)*10+j)!=0){
+                }else if(peiceidentifier((i)*10+j)!=0&&peiceidentifier((i)*10+j)!=peiceidentifier(kinglocation)){
                     break;
                 }
                 i++;
@@ -689,15 +689,15 @@ bool check(bool color, int kinglocation){
             }
         }
         if(!blackkingcheck){
-            int i=kinglocation/10-1;
-            int j=kinglocation%10-1;
+            int i=kinglocation/10;
+            int j=kinglocation%10;
             while(i>=1&&j>=1){
                 if((peicetype(peiceidentifier((i)*10+j))==3||
                     peicetype(peiceidentifier((i)*10+j))==2)&&
                     peicecolouridentifier(peiceidentifier((i)*10+j))==1){
                     blackkingcheck = true;
                     break;
-                } else if (peiceidentifier((i) * 10 + j) != 0 ) {
+                } else if (peiceidentifier((i) * 10 + j) != 0&&peiceidentifier((i)*10+j)!=peiceidentifier(kinglocation) ) {
                     break;
                 }
                 i--;
@@ -789,15 +789,15 @@ bool check(bool color, int kinglocation){
             }
         }
         if(!whitekingcheck){
-            int i=kinglocation/10+1;
-            int j=kinglocation%10+1;
+            int i=kinglocation/10;
+            int j=kinglocation%10;
             while(i<=8&&j<=8){
                 if((peicetype(peiceidentifier((i)*10+j))==3||
                     peicetype(peiceidentifier((i)*10+j))==2)&&
                     peicecolouridentifier(peiceidentifier((i)*10+j))==0){
                     whitekingcheck=true;
                     break;
-                }else if(peiceidentifier((i)*10+j)!=0){
+                }else if(peiceidentifier((i)*10+j)!=0&&peiceidentifier((i)*10+j)!=peiceidentifier(kinglocation)){
                     break;
                 }
                 i++;
@@ -805,15 +805,15 @@ bool check(bool color, int kinglocation){
             }
         }
         if(!whitekingcheck){
-            int i=kinglocation/10-1;
-            int j=kinglocation%10+1;
+            int i=kinglocation/10;
+            int j=kinglocation%10;
             while(i>=1&&j<=8){
                 if((peicetype(peiceidentifier((i)*10+j))==3||
                     peicetype(peiceidentifier((i)*10+j))==2)&&
                     peicecolouridentifier(peiceidentifier((i)*10+j))==0){
                     whitekingcheck=true;
                     break;
-                }else if(peiceidentifier((i)*10+j)!=0){
+                }else if(peiceidentifier((i)*10+j)!=0&&peiceidentifier((i)*10+j)!=peiceidentifier(kinglocation)){
                     break;
                 }
                 i--;
@@ -821,15 +821,15 @@ bool check(bool color, int kinglocation){
             }
         }
         if(!whitekingcheck){
-            int i=kinglocation/10+1;
-            int j=kinglocation%10-1;
+            int i=kinglocation/10;
+            int j=kinglocation%10;
             while(i<=8&&j>=1){
                 if((peicetype(peiceidentifier((i)*10+j))==3||
                     peicetype(peiceidentifier((i)*10+j))==2)&&
                     peicecolouridentifier(peiceidentifier((i)*10+j))==0){
                     whitekingcheck=true;
                     break;
-                }else if(peiceidentifier((i)*10+j)!=0){
+                }else if(peiceidentifier((i)*10+j)!=0&&peiceidentifier((i)*10+j)!=peiceidentifier(kinglocation)){
                     break;
                 }
                 i++;
@@ -837,15 +837,15 @@ bool check(bool color, int kinglocation){
             }
         }
         if(!whitekingcheck){
-            int i=kinglocation/10-1;
-            int j=kinglocation%10-1;
+            int i=kinglocation/10;
+            int j=kinglocation%10;
             while(i>=1&&j>=1){
                 if((peicetype(peiceidentifier((i)*10+j))==3||
                     peicetype(peiceidentifier((i)*10+j))==2)||
                     peicecolouridentifier(peiceidentifier((i)*10+j))==0){
                     whitekingcheck = true;
                     break;
-                } else if (peiceidentifier((i) * 10 + j) != 0) {
+                } else if (peiceidentifier((i) * 10 + j) != 0&&peiceidentifier((i)*10+j)!=peiceidentifier(kinglocation)) {
                     break;
                 }
                 i--;
@@ -942,20 +942,35 @@ void savedatatofile(){
 }
 void printboard(){
     int peiceid;
-    int numberofspaces;
     for(int i=8; i>=1; i--){
         for(int j=1; j<=8; j++){
+            cout<<"|";
             peiceid=peiceidentifier((j*10)+i);
-            if(peiceid<10){
-                numberofspaces=1;
+            if(peiceid!=0){
+                string temp;
+                if(peicecolouridentifier(peiceid)==1){
+                    temp.append("W");
+                }else{
+                    temp.append("B");
+                }
+                if(peicetype(peiceid)==1){
+                    temp.append("K");
+                }else if(peicetype(peiceid)==2){
+                    temp.append("Q");
+                }else if(peicetype(peiceid)==3){
+                    temp.append("B");
+                }else if(peicetype(peiceid)==4){
+                    temp.append("k");
+                }else if(peicetype(peiceid)==5){
+                    temp.append("R");
+                }else{
+                    temp.append("P");
+                }
+                cout<<temp;
             }else{
-                numberofspaces=0;
+                cout<<"  ";
             }
-            cout<<"| "<<peiceid;
-            if(numberofspaces==1){
-                cout<<" ";
-            }
-            cout<<" |";
+            cout<<"|";
         }
         cout<<endl;
     }
@@ -1121,7 +1136,7 @@ int main(){
                 cout<<"Please input proper information"<<endl;
             }
             if(!inproperinput){
-                bool allowed;
+                bool allowed=false;
                 peiceid=peiceidentifier(peicelocation);
                 int typeofpeice=peicetype(peiceid);
                 if(typeofpeice==2){
@@ -1173,6 +1188,17 @@ int main(){
                         thread thread2(peicemovedupdator, peiceid);
                         thread1.join();
                         thread2.join();
+                        if(peicetype(peiceidentifier(desiredlocation))==6){
+                            if(peicecolouridentifier(peiceidentifier(desiredlocation))==1){
+                                if(desiredlocation%10==8){
+                                    updatingpositionsafterimport(peiceidentifier(desiredlocation), piecetype, 2);
+                                }
+                            }else{
+                                if(desiredlocation%10==1){
+                                    updatingpositionsafterimport(peiceidentifier(desiredlocation), piecetype, 2);
+                                }
+                            }
+                        }
                     }
                 }
             }
